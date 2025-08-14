@@ -51,9 +51,7 @@ class TurboImageModule(private val context: ReactApplicationContext) :
           .build()
       }
     }
-    imageLoader = Coil.imageLoader(context).newBuilder()
-      .respectCacheHeaders(cachePolicy == "urlCache")
-      .build()
+    imageLoader = ImageLoaderProvider.get(context, cachePolicy == "urlCache")
     imageRequests.forEach { imageRequest ->
       imageLoader?.enqueue(imageRequest)
     }
