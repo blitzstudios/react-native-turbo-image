@@ -9,8 +9,8 @@ object ImageLoaderProvider {
   @Volatile private var defaultLoader: ImageLoader? = null
   @Volatile private var urlCacheLoader: ImageLoader? = null
 
-  private fun buildOkHttpClient(): OkHttpClient {
-    return OkHttpClient.Builder()
+  private val sharedOkHttpClient: OkHttpClient by lazy {
+    OkHttpClient.Builder()
       .addInterceptor(ProgressInterceptor())
       .build()
   }
@@ -18,10 +18,10 @@ object ImageLoaderProvider {
   private fun buildImageLoader(
     context: Context,
     respectCacheHeaders: Boolean,
-    observerEnabled: Boolean
+    observerEnabled: Boolean = true
   ): ImageLoader {
     return ImageLoader.Builder(context)
-      .okHttpClient(buildOkHttpClient())
+      .okHttpClient(sharedOkHttpClient)
       .respectCacheHeaders(respectCacheHeaders)
       .networkObserverEnabled(observerEnabled)
       .build()
