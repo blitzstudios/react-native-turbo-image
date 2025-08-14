@@ -54,6 +54,8 @@ class TurboImageView(private val reactContext: ThemedReactContext) :
 
   var memoryCacheKey: String? = null
 
+  var currentProgressId: String? = null
+
   val circleProgressDrawable: CircularProgressDrawable?
     get() {
       indicator.let {

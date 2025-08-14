@@ -73,4 +73,9 @@ class TurboImageListener(private val view: TurboImageView, private val onComplet
 
     onComplete?.invoke()
   }
+
+  override fun onCancel(request: ImageRequest) {
+    super.onCancel(request)
+    onComplete?.invoke()
+  }
 }

@@ -57,6 +57,8 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
 
   override fun onDropViewInstance(view: TurboImageView) {
     super.onDropViewInstance(view)
+    view.currentProgressId?.let { ProgressRegistry.unregister(it) }
+    view.currentProgressId = null
     view.dispose()
   }
 
@@ -67,7 +69,9 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
       CrossfadeDrawable.DEFAULT_DURATION
     }
 
+    view.currentProgressId?.let { ProgressRegistry.unregister(it) }
     val progressId = UUID.randomUUID().toString()
+    view.currentProgressId = progressId
     ProgressRegistry.register(progressId) { bytesRead, contentLength, _ ->
       val reactContext = view.context as ReactContext
       UIManagerHelper.getEventDispatcher(reactContext, view.id)?.let {
@@ -91,6 +95,9 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
       view.allowHardware?.let { allowHardware(it) }
       listener(TurboImageListener(view) {
         ProgressRegistry.unregister(progressId)
+        if (view.currentProgressId == progressId) {
+          view.currentProgressId = null
+        }
       })
       view.format?.let {
         when (it) {
@@ -257,11 +264,15 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
   }
 
   override fun onHostPause() {
+    imageView.currentProgressId?.let { ProgressRegistry.unregister(it) }
+    imageView.currentProgressId = null
     imageView.dispose()
     isInBackground = true
   }
 
   override fun onHostDestroy() {
+    imageView.currentProgressId?.let { ProgressRegistry.unregister(it) }
+    imageView.currentProgressId = null
     imageView.dispose()
   }
 }
