@@ -8,7 +8,7 @@ class ProgressInterceptor : Interceptor {
     val request = chain.request()
     val progressId = request.header(PROGRESS_ID_HEADER)
     val originalResponse = chain.proceed(request)
-    return if (progressId != null) {
+    return if (progressId != null && originalResponse.body != null) {
       val listener = ProgressListener { bytesRead, contentLength, done ->
         ProgressRegistry.notify(progressId, bytesRead, contentLength, done)
       }

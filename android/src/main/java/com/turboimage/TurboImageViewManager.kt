@@ -87,7 +87,6 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
     val imageLoader = ImageLoaderProvider.get(view.context, view.cachePolicy == "urlCache")
 
     view.load(view.uri, imageLoader) {
-      view.headers?.let { headers(it) }
       view.cacheKey?.let {
         memoryCacheKey(it)
         diskCacheKey(it)
@@ -146,7 +145,7 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
       // attach progress id so interceptor can route updates
       headers(
         (view.headers ?: Headers.Builder().build()).newBuilder()
-          .add(ProgressInterceptor.PROGRESS_ID_HEADER, progressId)
+          .set(ProgressInterceptor.PROGRESS_ID_HEADER, progressId)
           .build()
       )
 
