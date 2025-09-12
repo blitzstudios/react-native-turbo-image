@@ -11,7 +11,7 @@ import com.turboimage.events.FailureEvent
 import com.turboimage.events.StartEvent
 import com.turboimage.events.SuccessEvent
 
-class TurboImageListener(private val view: TurboImageView) : ImageRequest.Listener {
+class TurboImageListener(private val view: TurboImageView, private val onComplete: (() -> Unit)? = null) : ImageRequest.Listener {
 
   override fun onStart(request: ImageRequest) {
     super.onStart(request)
@@ -47,6 +47,8 @@ class TurboImageListener(private val view: TurboImageView) : ImageRequest.Listen
       val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
       it.dispatchEvent(CompletionEvent(surfaceId, view.id, payload))
     }
+
+    onComplete?.invoke()
   }
 
   override fun onError(request: ImageRequest, result: ErrorResult) {
@@ -68,5 +70,12 @@ class TurboImageListener(private val view: TurboImageView) : ImageRequest.Listen
       val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
       it.dispatchEvent(CompletionEvent(surfaceId, view.id, payload))
     }
+
+    onComplete?.invoke()
+  }
+
+  override fun onCancel(request: ImageRequest) {
+    super.onCancel(request)
+    onComplete?.invoke()
   }
 }

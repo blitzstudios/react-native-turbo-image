@@ -3,7 +3,6 @@ package com.turboimage
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build.VERSION.SDK_INT
 import android.widget.ImageView.ScaleType
-import coil.Coil
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
@@ -26,9 +25,9 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import okhttp3.Headers
 import com.turboimage.decoder.APNGDecoder
 import com.turboimage.events.ProgressEvent
+import java.util.UUID
 import com.turboimage.events.interceptor.ProgressInterceptor
-import com.turboimage.events.interceptor.ProgressListener
-import okhttp3.OkHttpClient
+import com.turboimage.events.interceptor.ProgressRegistry
 
 class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEventListener {
   override fun getName() = REACT_CLASS
@@ -58,6 +57,8 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
 
   override fun onDropViewInstance(view: TurboImageView) {
     super.onDropViewInstance(view)
+    view.currentProgressId?.let { ProgressRegistry.unregister(it) }
+    view.currentProgressId = null
     view.dispose()
   }
 
@@ -68,35 +69,35 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
       CrossfadeDrawable.DEFAULT_DURATION
     }
 
-    val okHttpClient = OkHttpClient.Builder()
-      .addInterceptor(ProgressInterceptor(object : ProgressListener {
-        override fun update(bytesRead: Long, contentLength: Long, done: Boolean) {
-          val reactContext = view.context as ReactContext
-          UIManagerHelper.getEventDispatcher(reactContext, view.id)?.let {
-            val payload = Arguments.createMap().apply {
-              putDouble("completed", bytesRead.toDouble())
-              putDouble("total", contentLength.toDouble())
-            }
-            val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
-            it.dispatchEvent(ProgressEvent(surfaceId, view.id, payload))
-          }
+    view.currentProgressId?.let { ProgressRegistry.unregister(it) }
+    val progressId = UUID.randomUUID().toString()
+    view.currentProgressId = progressId
+    ProgressRegistry.register(progressId) { bytesRead, contentLength, _ ->
+      val reactContext = view.context as ReactContext
+      UIManagerHelper.getEventDispatcher(reactContext, view.id)?.let {
+        val payload = Arguments.createMap().apply {
+          putDouble("completed", bytesRead.toDouble())
+          putDouble("total", contentLength.toDouble())
         }
-      }))
-      .build()
+        val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+        it.dispatchEvent(ProgressEvent(surfaceId, view.id, payload))
+      }
+    }
 
-    val imageLoader = Coil.imageLoader(view.context).newBuilder()
-      .respectCacheHeaders(view.cachePolicy == "urlCache")
-      .okHttpClient(okHttpClient)
-      .build()
+    val imageLoader = ImageLoaderProvider.get(view.context, view.cachePolicy == "urlCache")
 
     view.load(view.uri, imageLoader) {
-      view.headers?.let { headers(it) }
       view.cacheKey?.let {
         memoryCacheKey(it)
         diskCacheKey(it)
       }
       view.allowHardware?.let { allowHardware(it) }
-      listener(TurboImageListener(view))
+      listener(TurboImageListener(view) {
+        ProgressRegistry.unregister(progressId)
+        if (view.currentProgressId == progressId) {
+          view.currentProgressId = null
+        }
+      })
       view.format?.let {
         when (it) {
           "svg" -> {
@@ -125,9 +126,7 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
         }
       }
 
-      placeholder(
-        view.thumbhashDrawable ?: view.blurhashDrawable ?: view.circleProgressDrawable
-      )
+      placeholder(view.thumbhashDrawable ?: view.blurhashDrawable ?: view.circleProgressDrawable)
       view.memoryCacheKey?.let {
         placeholderMemoryCacheKey(it)
       }
@@ -143,6 +142,12 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
         }
       }
       size(view.resize ?: Size.ORIGINAL)
+      // attach progress id so interceptor can route updates
+      headers(
+        (view.headers ?: Headers.Builder().build()).newBuilder()
+          .set(ProgressInterceptor.PROGRESS_ID_HEADER, progressId)
+          .build()
+      )
 
     }
   }
@@ -258,11 +263,15 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
   }
 
   override fun onHostPause() {
+    imageView.currentProgressId?.let { ProgressRegistry.unregister(it) }
+    imageView.currentProgressId = null
     imageView.dispose()
     isInBackground = true
   }
 
   override fun onHostDestroy() {
+    imageView.currentProgressId?.let { ProgressRegistry.unregister(it) }
+    imageView.currentProgressId = null
     imageView.dispose()
   }
 }
