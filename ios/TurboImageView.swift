@@ -95,19 +95,21 @@ final class TurboImageView : UIView {
       guard let placeholder else { return }
       
       if let blurhash = placeholder.value(forKey: "blurhash") as? String {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
           let image = UIImage(blurHash: blurhash)
-          DispatchQueue.main.async { [self] in
-            lazyImageView.placeholderImage = image
+          DispatchQueue.main.async {
+            guard let strongSelf = self else { return } // Safely unwrap weak self
+            strongSelf.lazyImageView.placeholderImage = image
           }
         }
       }
       
       if let thumbhash = placeholder.value(forKey: "thumbhash") as? String {
-        DispatchQueue.global(qos: .userInteractive).async {
+        DispatchQueue.global(qos: .userInteractive).async {  [weak self] in
           let image = UIImage(thumbhash: thumbhash)
-          DispatchQueue.main.async { [self] in
-            lazyImageView.placeholderImage = image
+          DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return } // Safely unwrap weak self
+            strongSelf.lazyImageView.placeholderImage = image
           }
         }
       }
@@ -245,7 +247,8 @@ fileprivate extension TurboImageView {
       }
     }
     
-    lazyImageView.makeImageView = { container in
+    lazyImageView.makeImageView = { [weak self] container in
+      guard let self = self else { return nil }
       if let data = container.data {
         let view = UIView(SVGData: data)
         self.addSubview(view)
@@ -256,9 +259,10 @@ fileprivate extension TurboImageView {
   }
   
   func handleGif() {
-    lazyImageView.makeImageView = { container in
+    lazyImageView.makeImageView = { [weak self] container in
+      guard let self = self else { return nil }
       if container.type == .gif,
-         let data = container.data {
+        let data = container.data {
         let view = GIFImageView()
         view.contentMode = ResizeMode(rawValue: self.resizeMode)?.contentMode ?? .scaleToFill
         view.animate(withGIFData: data)
