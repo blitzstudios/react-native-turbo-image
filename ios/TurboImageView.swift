@@ -368,9 +368,7 @@ fileprivate extension TurboImageView {
         self.handleLiveTextInteraction()
       }
 #endif
-  }
-}
-    
+    }    
   }
   
   func onStartHandler(with task: ImageTask) {
