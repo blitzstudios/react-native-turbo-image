@@ -338,32 +338,38 @@ fileprivate extension TurboImageView {
 fileprivate extension TurboImageView {
   
   func registerObservers() {
-    lazyImageView.onStart = { task in
+    lazyImageView.onStart = { [weak self] task in
+      guard let self = self else { return }
       self.requestInFlight = true
       self.onStartHandler(with: task)
     }
     
-    lazyImageView.onProgress = { progress in
+    lazyImageView.onProgress = { [weak self] progress in
+      guard let self = self else { return }
       self.onProgressHandler(with: progress)
     }
     
-    lazyImageView.onSuccess = { response in
+    lazyImageView.onSuccess = { [weak self] response in
+      guard let self = self else { return }
       self.requestInFlight = false
       self.onSuccessHandler(with: response)
     }
     
-    lazyImageView.onFailure = { error in
+    lazyImageView.onFailure = { [weak self] error in
+      guard let self = self else { return }
       self.onFailureHandler(with: error)
     }
     
-    lazyImageView.onCompletion = { result in
+    lazyImageView.onCompletion = { [weak self] result in
+      guard let self = self else { return }
       self.onCompletionHandler(with: result)
 #if !os(tvOS) && canImport(VisionKit)
       if self.enableLiveTextInteraction {
         self.handleLiveTextInteraction()
       }
 #endif
-    }
+  }
+}
     
   }
   
