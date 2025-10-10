@@ -141,7 +141,7 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
           error(view.thumbhashDrawable ?: view.blurhashDrawable)
         }
       }
-      size(view.resize ?: Size.ORIGINAL)
+      view.resize?.let { size(it) }
       // attach progress id so interceptor can route updates
       headers(
         (view.headers ?: Headers.Builder().build()).newBuilder()
