@@ -43,6 +43,8 @@ const TurboImageView = forwardRef(
       blur,
       monochrome,
       resize,
+      resizeWidth,
+      resizeHeight,
       tint,
       enableLiveTextInteraction,
       isProgressiveImageRenderingEnabled,
@@ -95,6 +97,8 @@ const TurboImageView = forwardRef(
           blur={blur}
           monochrome={processColor(monochrome)}
           resize={resize}
+          resizeWidth={resizeWidth}
+          resizeHeight={resizeHeight}
           tint={processColor(tint)}
           enableLiveTextInteraction={enableLiveTextInteraction}
           allowHardware={allowHardware}

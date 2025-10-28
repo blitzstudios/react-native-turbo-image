@@ -198,7 +198,7 @@ final class TurboImageView : UIView {
     }
     lazyImageView.processors = processors
     
-    if !Set(["source", "resize", "blur","monochrome", "tint"])
+    if !Set(["source", "resize", "resizeWidth", "resizeHeight", "blur","monochrome", "tint"])
       .intersection(changedProps).isEmpty {
       reloadImage()
     }

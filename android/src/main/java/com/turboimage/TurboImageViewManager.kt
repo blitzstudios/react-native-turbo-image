@@ -230,6 +230,14 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
     }
   }
 
+  @ReactProp(name = "resizeWidth")
+  fun setResizeWidth(view: TurboImageView, resizeWidth: Int?) {
+  }
+
+  @ReactProp(name = "resizeHeight")
+  fun setResizeHeight(view: TurboImageView, resizeHeight: Int?) {
+  }
+
   @ReactProp(name = "tint")
   fun setTint(view: TurboImageView, tint: Int?) {
     view.tint = tint
