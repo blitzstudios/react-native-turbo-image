@@ -230,10 +230,12 @@ class TurboImageViewManager : SimpleViewManager<TurboImageView>(), LifecycleEven
     }
   }
 
+  // TODO: implement this
   @ReactProp(name = "resizeWidth")
   fun setResizeWidth(view: TurboImageView, resizeWidth: Int?) {
   }
 
+  // TODO: implement this
   @ReactProp(name = "resizeHeight")
   fun setResizeHeight(view: TurboImageView, resizeHeight: Int?) {
   }
