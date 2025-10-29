@@ -65,6 +65,10 @@ final class TurboImageView : UIView {
   @objc var monochrome: UIColor!
   
   @objc var resize: NSNumber?
+    
+  @objc var resizeWidth: NSNumber?
+    
+  @objc var resizeHeight: NSNumber?
   
   @objc var tint: UIColor!
   
@@ -194,7 +198,7 @@ final class TurboImageView : UIView {
     }
     lazyImageView.processors = processors
     
-    if !Set(["source", "resize", "blur","monochrome", "tint"])
+    if !Set(["source", "resize", "resizeWidth", "resizeHeight", "blur","monochrome", "tint"])
       .intersection(changedProps).isEmpty {
       reloadImage()
     }
@@ -300,9 +304,15 @@ fileprivate extension TurboImageView {
   func composeProcessors() -> [ImageProcessing] {
     var initialProcessors: [ImageProcessing] = []
     
-    if let resize {
+    if let resizeWidth, let resizeHeight {
       initialProcessors.append(
-        ImageProcessors.Resize(width: resize.doubleValue))
+        ImageProcessors.Resize(size: CGSize(width: resizeWidth.doubleValue, height: resizeHeight.doubleValue), contentMode: .aspectFit))
+    } else if let width = resize ?? resizeWidth {
+      initialProcessors.append(
+         ImageProcessors.Resize(width: width.doubleValue))
+    } else if let resizeHeight {
+        initialProcessors.append(
+            ImageProcessors.Resize(height: resizeHeight.doubleValue))
     }
     
     if rounded {
@@ -372,7 +382,7 @@ fileprivate extension TurboImageView {
         self.handleLiveTextInteraction()
       }
 #endif
-    }    
+    }
   }
   
   func onStartHandler(with task: ImageTask) {

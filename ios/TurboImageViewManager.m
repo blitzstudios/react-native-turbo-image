@@ -26,6 +26,10 @@ RCT_EXPORT_VIEW_PROPERTY(monochrome, UIColor *)
 
 RCT_EXPORT_VIEW_PROPERTY(resize, NSNumber)
 
+RCT_EXPORT_VIEW_PROPERTY(resizeWidth, NSNumber)
+
+RCT_EXPORT_VIEW_PROPERTY(resizeHeight, NSNumber)
+
 RCT_EXPORT_VIEW_PROPERTY(tint, UIColor *)
 
 RCT_EXPORT_VIEW_PROPERTY(enableLiveTextInteraction, BOOL)
