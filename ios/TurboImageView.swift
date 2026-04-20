@@ -2,7 +2,7 @@ import Nuke
 import NukeUI
 import SwiftSVG
 #if !os(tvOS) && canImport(VisionKit)
-import VisionKit
+@_weakLinked import VisionKit
 #endif
 import Gifu
 import React
@@ -427,9 +427,11 @@ fileprivate extension TurboImageView {
     lazyImageView.imageView.addInteraction(interaction)
     Task {
       let analyzer = ImageAnalyzer()
-      let configuration = ImageAnalyzer.Configuration([
-        .text,.machineReadableCode,.visualLookUp
-      ])
+      var analysisTypes: ImageAnalyzer.AnalysisTypes = [.text, .machineReadableCode]
+      if #available(iOS 17.0, *) {
+        analysisTypes.insert(.visualLookUp)
+      }
+      let configuration = ImageAnalyzer.Configuration(analysisTypes)
       let analysis = try? await analyzer.analyze(image, configuration: configuration)
       if let analysis {
         interaction.analysis = analysis
